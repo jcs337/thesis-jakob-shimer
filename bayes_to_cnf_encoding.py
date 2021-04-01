@@ -109,10 +109,8 @@ def ENC1Encoding(bayes_net):
     # a neat CNF statement. Also, the || operators are standing in for AND
     # statements. A better CNF package would help here. Will have to figure 
     # something out.
-    start = time.time()
+
     indicator_clauses = get_indicator_clauses(bayes_net)
     parameter_clauses = get_theta_parameter_clauses(bayes_net)
     clauses = indicator_clauses + parameter_clauses
-    end = time.time()
-    print("This process took " + str(end - start) + " long. In however many seconds.")
     return clauses

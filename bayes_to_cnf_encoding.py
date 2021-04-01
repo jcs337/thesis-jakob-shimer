@@ -63,7 +63,7 @@ def get_theta_parameter_clauses(bayes_net):
     # If the variable has no parents, create a seperate theta parameter.
         else:
             for x in range(len(variables.get(var))):
-                theta = "theta_" + str(var) + "_" + str(x)
+                theta = "theta_" + str(var) + "_" + str(x + 1)
                 parameter_clauses.append(theta)
     return parameter_clauses
                 

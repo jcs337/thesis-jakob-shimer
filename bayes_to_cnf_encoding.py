@@ -3,6 +3,7 @@
 
 from pgmpy.readwrite import BIFReader
 from pgmpy.models import BayesianModel
+import time
 
 def get_indicator_clauses(bayes_net):
     # Get variable list, and initialize list to capture indicator clauses.
@@ -16,14 +17,14 @@ def get_indicator_clauses(bayes_net):
         clause = False
         var_domain = len(variables.get(var))
         for x in range(var_domain):
-            literal = 'lambda_' + var + "_" + str(x+1)
+            literal = 'lambda_' + var + "_" + str(x)
             clause = (str(clause)+"||"+str(literal))
         indicator_clauses.append(clause)
     # Create a clause of every pair of domain values as negative literals.
         for i in range(var_domain):
             for j in range(i + 1,var_domain):
-                first_literal = "!lambda_" + var + "_" + str(i+1)
-                second_literal = "!lambda_" + var + "_" + str(j+1)
+                first_literal = "!lambda_" + var + "_" + str(i)
+                second_literal = "!lambda_" + var + "_" + str(j)
                 clause = (str(first_literal)+"||"+str(second_literal))
                 indicator_clauses.append(clause)
                 
@@ -57,13 +58,13 @@ def get_theta_parameter_clauses(bayes_net):
                     clause += ["lambda_" + str(parent) + "_" + str(config[i])]
                 clause = "||".join(clause)
                 for x in range(len(variables.get(var))):
-                    theta_n = theta + "_" + str(x + 1)
+                    theta_n = theta + "_" + str(x)
                     final_clause = clause + "<=>" + theta_n
                     parameter_clauses.append(final_clause)
     # If the variable has no parents, create a seperate theta parameter.
         else:
             for x in range(len(variables.get(var))):
-                theta = "theta_" + str(var) + "_" + str(x + 1)
+                theta = "theta_" + str(var) + "_" + str(x)
                 parameter_clauses.append(theta)
     return parameter_clauses
                 
@@ -93,7 +94,7 @@ def configurations(parents, indices, current_depth, domains, list_of_clauses):
         return
     
     for i in range(1,max_list_length(domains)+1):
-        indices[current_depth-1] = i
+        indices[current_depth-1] = i-1
         configurations(parents, indices, current_depth-1, domains, list_of_clauses)
         
 def ENC1Encoding(bayes_net):
@@ -108,8 +109,10 @@ def ENC1Encoding(bayes_net):
     # a neat CNF statement. Also, the || operators are standing in for AND
     # statements. A better CNF package would help here. Will have to figure 
     # something out.
-    
+    start = time.time()
     indicator_clauses = get_indicator_clauses(bayes_net)
     parameter_clauses = get_theta_parameter_clauses(bayes_net)
     clauses = indicator_clauses + parameter_clauses
+    end = time.time()
+    print("This process took " + str(end - start) + " long. In however many seconds.")
     return clauses

@@ -72,6 +72,9 @@ def configurations(parents, indices, current_depth, domains, list_of_clauses):
     #Before running, initialize indices to [0]*len(parents) and
     #current_depth to len(parents)
 
+    # Helper function for theta parameter clauses. Needed to determine all
+    # possible configurations of discrete domain values.
+
     def max_list_length(list_of_lists):
         max_list_length = 0
         for list_object in list_of_lists:
@@ -94,6 +97,17 @@ def configurations(parents, indices, current_depth, domains, list_of_clauses):
         configurations(parents, indices, current_depth-1, domains, list_of_clauses)
         
 def ENC1Encoding(bayes_net):
+    
+    # Bayes_net variable must be in the form of a bif file. I.e.,
+    # using the function BIFReader, read in a .bif file, then output
+    # the indicator and parameter clauses specified by ENC1 encoding
+    
+    # Still need to find a better way to encode a CNF statement. A better
+    # alternative would avoid having the OR FALSE in a lot of the indicator
+    # clauses. As is, the parameter_clauses function does not manage to get
+    # a neat CNF statement. Also, the || operators are standing in for AND
+    # statements. A better CNF package would help here. Will have to figure 
+    # something out.
     
     indicator_clauses = get_indicator_clauses(bayes_net)
     parameter_clauses = get_theta_parameter_clauses(bayes_net)

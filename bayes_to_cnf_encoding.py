@@ -14,11 +14,12 @@ def get_indicator_clauses(bayes_net):
     # variable's domain
     for var in variables:
         
-        clause = False
+        clause = []
         var_domain = len(variables.get(var))
         for x in range(var_domain):
             literal = 'lambda_' + var + "_" + str(x)
-            clause = (str(clause)+"||"+str(literal))
+            clause.append(str(literal))
+        clause = "||".join(clause)
         indicator_clauses.append(clause)
     # Create a clause of every pair of domain values as negative literals.
         for i in range(var_domain):
@@ -51,16 +52,27 @@ def get_theta_parameter_clauses(bayes_net):
     # With all possible parent domains, create clauses and add them to list.
     # Add the parameters to the parameter list.
             for config in configs:
-                clause = []
-                theta = "theta_" + str(var)
+                negated_clause = []
+                theta_clause = []
+                
+                # Simultaneously obtain negated clauses and theta clause
+                # For example, a ∧ b ∧ c ∧ d ↔ t = 
+                # (¬t ∨ a) ∧ (¬t ∨ b) ∧ (¬t ∨ c) ∧ (¬t ∨ d) ∧ (¬a ∨ ¬b ∨ ¬c ∨ ¬d ∨ t)
                 for i in range(len(parent_vars)):
                     parent = parent_vars[i]
-                    clause += ["lambda_" + str(parent) + "_" + str(config[i])]
-                clause = "||".join(clause)
+                    negated_clause += ["!" + str(parent) + "_" + str(config[i])]
+                    theta_clause += [str(parent) + "_" + str(config[i])]
+                negated_clause = "||".join(negated_clause)
+                theta_clause = "_" + "_".join(theta_clause)
                 for x in range(len(variables.get(var))):
-                    theta_n = theta + "_" + str(x)
-                    final_clause = clause + "<=>" + theta_n
-                    parameter_clauses.append(final_clause)
+                    theta = "theta_" + str(var) + "_" + str(x) + theta_clause
+                    theta_n = negated_clause + "||" + theta
+                    parameter_clauses.append(theta_n)
+                    negated_theta_clause = "!" + theta
+                    for i in range(len(parent_vars)):
+                        parent = parent_vars[i]
+                        clause  = negated_theta_clause + "||" +  str(parent) + "_" + str(config[i])
+                        parameter_clauses.append(clause)
     # If the variable has no parents, create a seperate theta parameter.
         else:
             for x in range(len(variables.get(var))):
@@ -70,8 +82,8 @@ def get_theta_parameter_clauses(bayes_net):
                 
 def configurations(parents, indices, current_depth, domains, list_of_clauses):
     
-    #Before running, initialize indices to [0]*len(parents) and
-    #current_depth to len(parents)
+    # Before running, initialize indices to [0]*len(parents) and
+    # current_depth to len(parents)
 
     # Helper function for theta parameter clauses. Needed to determine all
     # possible configurations of discrete domain values.
@@ -102,13 +114,6 @@ def ENC1Encoding(bayes_net):
     # Bayes_net variable must be in the form of a bif file. I.e.,
     # using the function BIFReader, read in a .bif file, then output
     # the indicator and parameter clauses specified by ENC1 encoding
-    
-    # Still need to find a better way to encode a CNF statement. A better
-    # alternative would avoid having the OR FALSE in a lot of the indicator
-    # clauses. As is, the parameter_clauses function does not manage to get
-    # a neat CNF statement. Also, the || operators are standing in for AND
-    # statements. A better CNF package would help here. Will have to figure 
-    # something out.
 
     indicator_clauses = get_indicator_clauses(bayes_net)
     parameter_clauses = get_theta_parameter_clauses(bayes_net)

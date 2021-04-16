@@ -79,6 +79,43 @@ def get_theta_parameter_clauses(bayes_net):
                 theta = "theta_" + str(var) + "_" + str(x)
                 parameter_clauses.append(theta)
     return parameter_clauses
+
+def get_rho_parameter_clauses(bayes_net):
+    # Make list to capture clauses, and initialize list of variables and parents
+    parameter_clauses = []
+    variables = bayes_net.get_values()
+    parents = bayes_net.get_parents()
+    
+    # For every variable, get all possible configurations of that
+    # variable's parent domains, using the configuration function.
+    for var in variables:
+        parent_vars = parents.get(var)
+        domains = []
+        for parent in parent_vars:
+            parent_values = variables.get(parent)
+            domain = [[i for i in range(1,len(parent_values) + 1)]]
+            domains += domain
+        configs = []
+        if len(parent_vars) != 0:
+            configurations(parent_vars, [0]*len(parent_vars), len(parent_vars), domains, configs)
+    # With all possible parent domains, create rho clause add to list.
+    # Add the parameter to the parameter list.
+            for config in configs:
+                rho_clause = []
+                
+                for i in range(len(parent_vars)):
+                    parent = parent_vars[i]
+                    rho_clause += [str(parent) + "_" + str(config[i])]
+                rho_clause = "_" + "_".join(rho_clause)
+                for x in range(len(variables.get(var)) - 1):
+                    rho = "rho_" + str(var) + "_" + str(x) + rho_clause
+                    parameter_clauses.append(rho)
+    # If the variable has no parents, create a seperate rho parameter.
+        else:
+            for x in range(len(variables.get(var)) - 1):
+                rho = "rho_" + str(var) + "_" + str(x)
+                parameter_clauses.append(rho)
+    return parameter_clauses
                 
 def configurations(parents, indices, current_depth, domains, list_of_clauses):
     
